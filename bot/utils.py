@@ -25,8 +25,12 @@ class PreparationForMessage:
     def preparation(cls, data: dict):
         employee: dict = data.get("gsma_employee")
         try:
-            start: datetime = datetime.fromisoformat(data.get("start_downtime"))
-            end: datetime = datetime.fromisoformat(data.get("end_downtime"))
+            start: datetime = datetime.fromisoformat(
+                data.get("start_downtime")
+            )
+            end: datetime = datetime.fromisoformat(
+                data.get("end_downtime")
+            )
         except Exception:
             start = None
             end = None

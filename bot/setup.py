@@ -4,9 +4,9 @@ import nest_asyncio
 import sentry_sdk
 from dotenv import load_dotenv
 from telegram.ext import ApplicationBuilder
-from bot.scheduler.request_downtime import get_downtime
 
 from bot.constants import TOKEN
+from bot.scheduler.request_downtime import get_downtime
 
 load_dotenv()
 nest_asyncio.apply()

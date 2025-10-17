@@ -8,3 +8,6 @@ TOKEN = os.getenv("TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 HEADERS = {"token": os.getenv("TOKEN_FOR_API")}
 URL = "http://job-lk.hopto.org/api/downtime-data-bot/"
+
+DATE_FORMAT = "%d.%m.%Y"
+TIME_FORMAT = "%H:%M"
