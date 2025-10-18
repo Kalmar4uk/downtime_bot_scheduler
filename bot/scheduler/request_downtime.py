@@ -1,7 +1,11 @@
+from datetime import datetime, timedelta
+
 import requests
 from telegram.ext import ApplicationBuilder
 
-from bot.constants import CHAT_ID, DATE_FORMAT, HEADERS, TIME_FORMAT, URL
+from bot import setup
+from bot.constants import (CHAT_ID, DATE_FORMAT, HEADERS, NEWSLETTER,
+                           TIME_FORMAT, URL)
 from bot.utils import PreparationForMessage
 
 
@@ -9,12 +13,29 @@ async def get_downtime(app: ApplicationBuilder) -> None:
     downtime: dict = requests.get(URL, headers=HEADERS).json()[0]  # Api отдает массив объектов, надо будет переписать на случай, если объектов > 1
     if downtime:
         message = PreparationForMessage.preparation(data=downtime)
-        await sent_message(data=message, app=app)
+        await send_message(data=message, app=app)
+        await scheduler_reminder(app=app, data=message)
 
 
-async def sent_message(
+async def scheduler_reminder(
+        app: ApplicationBuilder,
+        data: PreparationForMessage
+) -> None:
+    reminder_time: datetime = data.start - timedelta(hours=1, minutes=30)
+
+    setup.scheduler.add_job(
+        send_message,
+        "date",
+        run_date=reminder_time,
+        id=f"reminder_{reminder_time}",
+        kwargs={"data": data, "app": app, "reminder_time": reminder_time}
+    )
+
+
+async def send_message(
         data: PreparationForMessage,
-        app: ApplicationBuilder
+        app: ApplicationBuilder,
+        reminder_time: datetime | None = None
 ) -> None:
     text: str = (
         f"<b>{data.start.date().strftime(DATE_FORMAT)}</b>\n"
@@ -22,10 +43,24 @@ async def sent_message(
         f"По <b>{data.end.time().strftime(TIME_FORMAT)}</b>\n"
         f"Cервис: <b>{data.service}</b>\n"
         f"Будет произведено: <b>{data.description}</b>\n"
+        f"Даунтайм согласован в рамках задачи: {data.link}\n"
         f"Ответственный со стороны ГСМАиЦП:\n"
         f"<b>{data.last_name} {data.first_name}</b>"
     )
+
+    if not reminder_time:
+        news = f"{text}\n\n{NEWSLETTER.format('15:00')}"
+    else:
+        news = (
+            f"{text}\n\n"
+            f"{NEWSLETTER.format(reminder_time.time().strftime(TIME_FORMAT))}"
+        )
+
     try:
-        await app.bot.send_message(chat_id=CHAT_ID, text=text, parse_mode="HTML")
+        await app.bot.send_message(
+            chat_id=CHAT_ID,
+            text=news,
+            parse_mode="HTML"
+        )
     except Exception as e:
         print(f"Возникла ошибка {e}")
