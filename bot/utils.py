@@ -1,5 +1,11 @@
+import json
 from datetime import datetime
+
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram_bot_calendar import DetailedTelegramCalendar
+
 from bot.constants import DATE_FORMAT, TIME_FORMAT
+
 
 class Downtime:
 
@@ -70,3 +76,39 @@ class Downtime:
             self.start = date_downtime
         else:
             self.end = date_downtime
+
+
+async def generate_calendar() -> InlineKeyboardMarkup:
+    """Генерация календаря"""
+    calendar_json, _ = DetailedTelegramCalendar(locale="ru").build()
+    calendar_data = json.loads(calendar_json)
+
+    return InlineKeyboardMarkup(calendar_data["inline_keyboard"])
+
+
+async def generate_hour() -> InlineKeyboardMarkup:
+    keyboard = []
+    hours = [f"{h}" for h in range(0, 24)]
+    for i in range(0, len(hours), 6):
+        row = [
+            InlineKeyboardButton(
+                f"{h}", callback_data=f"{h}"
+            ) for h in hours[i:i+6]
+        ]
+        keyboard.append(row)
+
+    return InlineKeyboardMarkup(keyboard)
+
+
+async def generate_minute() -> InlineKeyboardMarkup:
+    keyboard = []
+    minutes = [f"{m}" for m in range(0, 60)]
+    for i in range(0, len(minutes), 6):
+        row = [
+            InlineKeyboardButton(
+                m, callback_data=f"{m}"
+            ) for m in minutes[i:i+6]
+        ]
+        keyboard.append(row)
+
+    return InlineKeyboardMarkup(keyboard)

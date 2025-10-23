@@ -1,9 +1,18 @@
 from telegram.ext import (Application, CallbackQueryHandler, CommandHandler,
-                          ConversationHandler, MessageHandler, filters, ContextTypes)
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
-from bot.bot_handlers.base import start, description_for_create_donwtime, cancel
-from bot.bot_handlers.create_downtime import service_for_create_downtime, date_start_create_downtime, date_end_create_downtime, link_create_downtime, desctiption_create_downtime
-from bot.constants import SERVICE, DATE_START, DATE_END, LINK, DESCRIPTION
+                          ConversationHandler, MessageHandler,
+                          filters)
+
+from bot.bot_handlers.base import (cancel, description_for_create_donwtime,
+                                   start)
+from bot.bot_handlers.create_downtime import (calendar_for_added_store,
+                                              check_date,
+                                              desctiption_create_downtime,
+                                              hour_create,
+                                              link_create_downtime,
+                                              minute_create,
+                                              service_for_create_downtime)
+from bot.constants import (CALENDAR, CHECK_DATE, DATE_END, DESCRIPTION, HOUR,
+                           LINK, MINUTE, SERVICE)
 
 
 async def start_handler(app: Application):
@@ -23,17 +32,17 @@ async def handlers_create_downtime(app: Application) -> None:
                     service_for_create_downtime
                 )
             ],
-            DATE_START: [
-                MessageHandler(
-                    filters.TEXT & ~filters.COMMAND,
-                    date_start_create_downtime
-                )
+            CALENDAR: [
+                CallbackQueryHandler(calendar_for_added_store)
             ],
-            DATE_END: [
-                MessageHandler(
-                    filters.TEXT & ~filters.COMMAND,
-                    date_end_create_downtime
-                )
+            HOUR: [
+                CallbackQueryHandler(hour_create)
+            ],
+            MINUTE: [
+                CallbackQueryHandler(minute_create)
+            ],
+            CHECK_DATE: [
+                CallbackQueryHandler(check_date)
             ],
             LINK: [
                 MessageHandler(

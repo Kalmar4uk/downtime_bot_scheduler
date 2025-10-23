@@ -1,10 +1,15 @@
+import json
 import re
-from telegram import (InlineKeyboardMarkup, ReplyKeyboardMarkup,
-                      ReplyKeyboardRemove, Update)
-from telegram.ext import CallbackContext, ContextTypes, ConversationHandler
+from datetime import datetime, time
 
-from bot.constants import DATE_START, DATE_END, LINK, DESCRIPTION, PATTERN_LINK
-from bot.utils import Downtime
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import CallbackContext, ContextTypes, ConversationHandler
+from telegram_bot_calendar import DetailedTelegramCalendar
+
+from bot.constants import (CALENDAR, CHECK_DATE, DESCRIPTION, HOUR,
+                           LINK, MINUTE, PATTERN_LINK)
+from bot.utils import (Downtime, generate_calendar, generate_hour,
+                       generate_minute)
 
 
 async def service_for_create_downtime(
@@ -16,47 +21,137 @@ async def service_for_create_downtime(
         data=update.message.text.strip(),
         is_service=True
         )
+
+    reply_markup = await generate_calendar()
+
     await update.message.reply_text(
         "Введи дату старта в формате ДД.ММ.ГГГГ "
-        "или отправь /cancel для остановки"
+        "или отправь /cancel для остановки",
+        reply_markup=reply_markup
     )
-    return DATE_START
+
+    return CALENDAR
 
 
-async def date_start_create_downtime(
-        update: Update, context: ContextTypes.DEFAULT_TYPE
+async def calendar_for_added_store(
+        update: Update,
+        context: CallbackContext
 ) -> int:
-    downtime: Downtime = context.user_data.get("downtime")
-    try:
-        downtime.save_start_and_end_date(data=update.message.text, start=True)
-    except ValueError as e:
-        await update.message.reply_text(
-            f"Возникла ошибка проверь дату: {e}"
-        )
-        return DATE_START
-    await update.message.reply_text(
-        "Введи дату окончания в формате ДД.ММ,ГГГГ "
-        "или отправь /cancel для остановки"
+    """Работа с календарем"""
+    result, key, _ = DetailedTelegramCalendar(
+        locale="ru"
+    ).process(
+        update.callback_query.data
     )
-    return DATE_END
+
+    if not result and key:
+        key = json.loads(key)
+        reply_markup = InlineKeyboardMarkup(key["inline_keyboard"])
+
+        await update.callback_query.edit_message_text(
+            "Выбери дату или отправь /cancel для остановки:",
+            reply_markup=reply_markup
+        )
+
+    elif result:
+        downtime: Downtime = context.user_data.get("downtime")
+
+        if not downtime.start:
+            downtime.start = result
+        else:
+            downtime.end = result
+
+        await update.callback_query.edit_message_text(
+            f"Выбрана дата: {result}"
+        )
+
+        reply_markup_hour = await generate_hour()
+        await update.callback_query.message.reply_text(
+            "Выбери час:",
+            reply_markup=reply_markup_hour
+        )
+
+        return HOUR
 
 
-async def date_end_create_downtime(
-        update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> int:
-    downtime: Downtime = context.user_data.get("downtime")
-    try:
-        downtime.save_start_and_end_date(data=update.message.text, start=True)
-    except ValueError as e:
-        await update.message.reply_text(
-            f"Возникла ошибка проверь дату: {e}"
-        )
-        return DATE_END
-    await update.message.reply_text(
-        "Введи ссылку на проведение работ или "
-        "отправь /cancel для остановки"
+async def hour_create(update: Update, context: CallbackContext) -> int:
+    hour = update.callback_query
+    context.user_data["hour"] = hour.data
+    await hour.answer()
+    await hour.edit_message_text(
+        f"Выбран час: {hour.data}"
     )
+
+    reply_markup = await generate_minute()
+    await update.callback_query.message.reply_text(
+        "Выбери минуты:",
+        reply_markup=reply_markup
+    )
+
+    return MINUTE
+
+
+async def minute_create(update: Update, context: CallbackContext) -> int:
+    minute = update.callback_query
+    await minute.answer()
+    await minute.edit_message_text(
+        f"Выбрана минута: {minute.data}"
+    )
+
+    hour: str = context.user_data.get("hour")
+    downtime: Downtime = context.user_data.get("downtime")
+
+    clock: time = time(int(hour), int(minute.data))
+    if not context.user_data.get("minute"):
+        downtime.start = datetime.combine(downtime.start, clock)
+    else:
+        downtime.end = datetime.combine(downtime.end, clock)
+
+    context.user_data["minute"] = minute.data
+
+    if not context.user_data.get("date_end"):
+        keyboard = [
+            [
+                InlineKeyboardButton("Да", callback_data="да"),
+                InlineKeyboardButton("Нет", callback_data="нет")
+            ]
+        ]
+
+        await update.callback_query.message.reply_text(
+            "Дата окончания совпадает с датой начала работ ?",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+
+        return CHECK_DATE
     return LINK
+
+
+async def check_date(update: Update, context: CallbackContext) -> int:
+    context.user_data["date_end"] = True
+    check = update.callback_query
+    await check.answer()
+
+    if check.data == "да":
+        downtime: Downtime = context.user_data.get("downtime")
+        downtime.end = downtime.start.date()
+        await check.edit_message_text(
+            "Необходимо выбрать часы и минуты окончания работ"
+        )
+        reply_markup_hour = await generate_hour()
+        await update.callback_query.message.reply_text(
+            "Выбери час:",
+            reply_markup=reply_markup_hour
+        )
+
+        return HOUR
+
+    else:
+        reply_markup = await generate_calendar()
+        await update.callback_query.edit_message_text(
+            "Выбери дату или отправь /cancel для остановки",
+            reply_markup=reply_markup
+        )
+        return CALENDAR
 
 
 async def link_create_downtime(
@@ -82,4 +177,5 @@ async def desctiption_create_downtime(
     downtime: Downtime = context.user_data.get("downtime")
     downtime.save_service_and_description(data=update.message.text.strip())
     await update.message.reply_text("Записал новый downtime")
+    context.user_data.clear()
     return ConversationHandler.END

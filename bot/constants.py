@@ -25,5 +25,5 @@ NEWSLETTER = (
     " - Срочные_Даркстор"
 )
 
-SERVICE, DATE_START, DATE_END, LINK, DESCRIPTION = [num for num in range(5)]
+SERVICE, CALENDAR, HOUR, MINUTE, CHECK_DATE, DATE_END, LINK, DESCRIPTION = range(8)
 PATTERN_LINK = r"^https://tracker\.yandex\.ru/DOWNTIME-\d{1,}"

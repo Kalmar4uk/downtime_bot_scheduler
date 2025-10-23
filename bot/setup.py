@@ -6,7 +6,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from telegram.ext import ApplicationBuilder
 
-from bot.bot_handlers.handlers import start_handler, handlers_create_downtime
+from bot.bot_handlers.handlers import handlers_create_downtime, start_handler
 from bot.constants import TOKEN
 from bot.scheduler.request_downtime import get_downtime
 
