@@ -43,3 +43,5 @@ async def start() -> None:
         await app.run_polling()
     except (KeyboardInterrupt, RuntimeError):
         print("Остановились")
+    except Exception as e:
+        print(f"Возникла ошибка: {e}")

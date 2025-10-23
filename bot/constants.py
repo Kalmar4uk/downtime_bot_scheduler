@@ -26,3 +26,4 @@ NEWSLETTER = (
 )
 
 SERVICE, DATE_START, DATE_END, LINK, DESCRIPTION = [num for num in range(5)]
+PATTERN_LINK = r"^https://tracker\.yandex\.ru/DOWNTIME-\d{1,}"

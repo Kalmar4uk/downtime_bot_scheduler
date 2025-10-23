@@ -1,6 +1,7 @@
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import ContextTypes, ConversationHandler
 from bot.constants import SERVICE
+from bot.utils import Downtime
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -32,6 +33,7 @@ async def description_for_create_donwtime(
         update: Update,
         context: ContextTypes.DEFAULT_TYPE
 ) -> int:
+    context.user_data["downtime"] = Downtime()
     await update.message.reply_text(
         "Для добавления Downtime необходимо поочередно написать:\n"
         "Сервис (прим. Siebel)\n"
