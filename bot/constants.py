@@ -13,7 +13,7 @@ DATE_FORMAT = "%d.%m.%Y"
 TIME_FORMAT = "%H:%M"
 
 NEWSLETTER = (
-    "Необходимо оформить рассылку сегодня в {}:\n"
+    "Необходимо оформить рассылку сегодня в <b>{}</b>:\n"
     "1. По почте;\n"
     "2. В чатах месседжер:\n"
     " - Срочные оповещения;\n"
@@ -24,3 +24,5 @@ NEWSLETTER = (
     " - Срочные_Hybris;\n"
     " - Срочные_Даркстор"
 )
+
+SERVICE, DATE_START, DATE_END, LINK, DESCRIPTION = [num for num in range(5)]

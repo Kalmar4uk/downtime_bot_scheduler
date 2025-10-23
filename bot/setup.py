@@ -6,6 +6,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from telegram.ext import ApplicationBuilder
 
+from bot.bot_handlers.handlers import start_handler, handlers_create_downtime
 from bot.constants import TOKEN
 from bot.scheduler.request_downtime import get_downtime
 
@@ -22,7 +23,7 @@ async def setup_scheduler() -> None:
     try:
         scheduler.add_job(
             get_downtime,
-            CronTrigger(hour=14, minute=9, second=50),
+            CronTrigger(hour=16, minute=58, second=20),
             id="get_downtime",
             timezone="Europe/Moscow",
             kwargs={"app": app}
@@ -35,6 +36,8 @@ async def setup_scheduler() -> None:
 async def start() -> None:
     """Главная функция запусков"""
     await setup_scheduler()
+    await start_handler(app=app)
+    await handlers_create_downtime(app=app)
 
     try:
         await app.run_polling()
