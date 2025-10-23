@@ -17,7 +17,7 @@ async def service_for_create_downtime(
         is_service=True
         )
     await update.message.reply_text(
-        "Введи дату старта в формате ДД.ММ.ГГГГ"
+        "Введи дату старта в формате ДД.ММ.ГГГГ "
         "или отправь /cancel для остановки"
     )
     return DATE_START
