@@ -17,7 +17,7 @@ nest_asyncio.apply()
 app = ApplicationBuilder().token(TOKEN).build()
 scheduler = AsyncIOScheduler()
 
-sentry_sdk.init(os.getenv("DSN"))
+sentry_sdk.init(os.getenv("DSN_BOT"))
 
 
 async def setup_scheduler() -> None:
