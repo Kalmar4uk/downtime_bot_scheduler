@@ -11,7 +11,7 @@ from bot.bot_handlers.create_downtime import (calendar_for_added_store,
                                               link_create_downtime,
                                               minute_create,
                                               service_for_create_downtime)
-from bot.constants import (CALENDAR, CHECK_DATE, DATE_END, DESCRIPTION, HOUR,
+from bot.constants import (CALENDAR, CHECK_DATE, DESCRIPTION, HOUR,
                            LINK, MINUTE, SERVICE)
 
 

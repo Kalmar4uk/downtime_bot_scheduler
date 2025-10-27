@@ -10,10 +10,10 @@ from bot.utils import Downtime
 
 
 async def get_downtime(app: ApplicationBuilder) -> None:
-    downtime: dict = requests.get(URL, headers=HEADERS).json()[0]  # Api отдает массив объектов, надо будет переписать на случай, если объектов > 1
+    downtime: dict = requests.get(URL, headers=HEADERS).json()  # Api отдает массив объектов, надо будет переписать на случай, если объектов > 1
     if downtime:
-        # message = [Downtime.preparation(data=data) for data in downtime] и тогда надо исправить request, сейчас он забирает первый объект
-        message = Downtime.preparation(data=downtime)
+        # message = [Downtime.preparation(data=data) for data in downtime]
+        message = Downtime.preparation(data=downtime[0])
         await send_message(data=message, app=app)
         await scheduler_reminder(app=app, data=message)
 

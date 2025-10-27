@@ -1,6 +1,7 @@
 import os
 
 from dotenv import load_dotenv
+from telegram import BotCommand
 
 load_dotenv()
 
@@ -25,5 +26,10 @@ NEWSLETTER = (
     " - Срочные_Даркстор"
 )
 
-SERVICE, CALENDAR, HOUR, MINUTE, CHECK_DATE, DATE_END, LINK, DESCRIPTION = range(8)
+SERVICE, CALENDAR, HOUR, MINUTE, CHECK_DATE, LINK, DESCRIPTION = range(7)
 PATTERN_LINK = r"^https://tracker\.yandex\.ru/DOWNTIME-\d{1,}"
+MY_COMMANDS = (
+    BotCommand("start", "Начало"),
+    BotCommand("add_downtime", "Добавить плановые работы"),
+    BotCommand("cancel", "Остановить запись плановых работ")
+)

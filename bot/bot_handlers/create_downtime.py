@@ -25,8 +25,7 @@ async def service_for_create_downtime(
     reply_markup = await generate_calendar()
 
     await update.message.reply_text(
-        "Введи дату старта в формате ДД.ММ.ГГГГ "
-        "или отправь /cancel для остановки",
+        "Выбери дату или отправь /cancel для остановки",
         reply_markup=reply_markup
     )
 
@@ -61,13 +60,11 @@ async def calendar_for_added_store(
         else:
             downtime.end = result
 
-        await update.callback_query.edit_message_text(
-            f"Выбрана дата: {result}"
-        )
+        await update.callback_query.delete_message()
 
         reply_markup_hour = await generate_hour()
         await update.callback_query.message.reply_text(
-            "Выбери час:",
+            "Выбери час или отправь /cancel для остановки",
             reply_markup=reply_markup_hour
         )
 
@@ -78,13 +75,11 @@ async def hour_create(update: Update, context: CallbackContext) -> int:
     hour = update.callback_query
     context.user_data["hour"] = hour.data
     await hour.answer()
-    await hour.edit_message_text(
-        f"Выбран час: {hour.data}"
-    )
+    await update.callback_query.delete_message()
 
     reply_markup = await generate_minute()
     await update.callback_query.message.reply_text(
-        "Выбери минуты:",
+        "Выбери минуты или отправь /cancel для остановки",
         reply_markup=reply_markup
     )
 
@@ -94,9 +89,7 @@ async def hour_create(update: Update, context: CallbackContext) -> int:
 async def minute_create(update: Update, context: CallbackContext) -> int:
     minute = update.callback_query
     await minute.answer()
-    await minute.edit_message_text(
-        f"Выбрана минута: {minute.data}"
-    )
+    await update.callback_query.delete_message()
 
     hour: str = context.user_data.get("hour")
     downtime: Downtime = context.user_data.get("downtime")
@@ -123,6 +116,9 @@ async def minute_create(update: Update, context: CallbackContext) -> int:
         )
 
         return CHECK_DATE
+    await update.callback_query.message.reply_text(
+        "Введи ссылку на задачу проведения работ"
+    )
     return LINK
 
 
@@ -134,15 +130,11 @@ async def check_date(update: Update, context: CallbackContext) -> int:
     if check.data == "да":
         downtime: Downtime = context.user_data.get("downtime")
         downtime.end = downtime.start.date()
-        await check.edit_message_text(
-            "Необходимо выбрать часы и минуты окончания работ"
-        )
         reply_markup_hour = await generate_hour()
-        await update.callback_query.message.reply_text(
-            "Выбери час:",
+        await check.edit_message_text(
+            "Выбери час или отправь /cancel для остановки",
             reply_markup=reply_markup_hour
         )
-
         return HOUR
 
     else:
@@ -161,7 +153,7 @@ async def link_create_downtime(
     if not re.match(PATTERN_LINK, link):
         await update.message.reply_text(
             "Это не похоже на корректную ссылку на даунтайм.\n"
-            "Пожалуйста, нужна ссылка в формате:\n"
+            "Нужна ссылка в формате:\n"
             "https://tracker.yandex.ru/DOWNTIME-XXXX\n\n"
         )
         return LINK
@@ -176,6 +168,14 @@ async def desctiption_create_downtime(
 ) -> int:
     downtime: Downtime = context.user_data.get("downtime")
     downtime.save_service_and_description(data=update.message.text.strip())
-    await update.message.reply_text("Записал новый downtime")
+    await update.message.reply_text(
+        f"Введенные данные:\n"
+        f"Сервис: {downtime.service}\n"
+        f"Дата начала: {downtime.start}\n"
+        f"Дата конца: {downtime.end}\n"
+        f"Ссылка на проведение работ: {downtime.link}\n"
+        f"Описание: {downtime.description}\n\n"
+        f"Записал новый downtime"
+    )
     context.user_data.clear()
     return ConversationHandler.END

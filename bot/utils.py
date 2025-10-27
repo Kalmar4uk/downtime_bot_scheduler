@@ -63,20 +63,6 @@ class Downtime:
         else:
             self.description = data
 
-    def save_start_and_end_date(
-            self,
-            data: str,
-            start: bool = False
-    ) -> None:
-        try:
-            date_downtime = datetime.strptime(data, f"{DATE_FORMAT} {TIME_FORMAT}")
-        except ValueError as e:
-            raise ValueError(str(e))
-        if start:
-            self.start = date_downtime
-        else:
-            self.end = date_downtime
-
 
 async def generate_calendar() -> InlineKeyboardMarkup:
     """Генерация календаря"""

@@ -7,24 +7,14 @@ from bot.utils import Downtime
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Описание команд"""
-    reply_keyboard = [
-        ["/add_downtime"],
-        ["/change_downtime"],
-        ["/delete_downtime"]
-    ]
     output = (
         f"Привет {update.message.from_user.username}.\n"
-        f"Выбери необходимое действие:\n"
-        f"/add_downtime - Добавление нового downtime для напоминания\n"
-        f"/change_downtime - Изменение downtime\n"
-        f"/delete_downtime - Удаление downtime"
+        f"Отправь /add_downtime для добавления нового downtime\n"
+        f"Либо воспользуйся кнопками в меню"
     )
     try:
         await update.message.reply_text(
-            text=output,
-            reply_markup=ReplyKeyboardMarkup(
-                keyboard=reply_keyboard,
-                one_time_keyboard=True)
+            text=output
         )
     except Exception as e:
         print(f"Возникла ошибка при отправке сообщения: {e}")
@@ -61,4 +51,5 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Запись остановлена"
     )
+    context.user_data.clear()
     return ConversationHandler.END

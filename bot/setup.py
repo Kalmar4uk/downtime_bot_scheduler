@@ -7,7 +7,7 @@ from apscheduler.triggers.cron import CronTrigger
 from telegram.ext import ApplicationBuilder
 
 from bot.bot_handlers.handlers import handlers_create_downtime, start_handler
-from bot.constants import TOKEN
+from bot.constants import TOKEN, MY_COMMANDS
 from bot.scheduler.request_downtime import get_downtime
 
 nest_asyncio.apply()
@@ -23,7 +23,7 @@ async def setup_scheduler() -> None:
     try:
         scheduler.add_job(
             get_downtime,
-            CronTrigger(hour=16, minute=58, second=20),
+            CronTrigger(hour=14),
             id="get_downtime",
             timezone="Europe/Moscow",
             kwargs={"app": app}
@@ -35,6 +35,7 @@ async def setup_scheduler() -> None:
 
 async def start() -> None:
     """Главная функция запусков"""
+    await app.bot.set_my_commands(MY_COMMANDS)
     await setup_scheduler()
     await start_handler(app=app)
     await handlers_create_downtime(app=app)
