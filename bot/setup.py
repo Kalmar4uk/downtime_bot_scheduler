@@ -6,9 +6,11 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from telegram.ext import ApplicationBuilder
 
-from bot.bot_handlers.handlers import handlers_create_downtime, start_handler
-from bot.constants import TOKEN, MY_COMMANDS
-from bot.scheduler.request_downtime import get_downtime
+from bot.bot_handlers.handlers import (error_handler, handlers_create_downtime,
+                                       start_handler)
+from bot.constants import MY_COMMANDS, TOKEN
+from bot.exceptions import ErrorStartSchedule
+from bot.scheduler.scheduler_downtime import get_downtime
 
 nest_asyncio.apply()
 
@@ -30,12 +32,13 @@ async def setup_scheduler() -> None:
         )
         scheduler.start()
     except Exception as e:
-        print(f"Ошибка при запуске планировщика: {e}")
+        raise ErrorStartSchedule(f"Ошибка при запуске планировщика: {str(e)}")
 
 
 async def start() -> None:
     """Главная функция запусков"""
     await app.bot.set_my_commands(MY_COMMANDS)
+    await app.add_error_handler(error_handler)
     await setup_scheduler()
     await start_handler(app=app)
     await handlers_create_downtime(app=app)

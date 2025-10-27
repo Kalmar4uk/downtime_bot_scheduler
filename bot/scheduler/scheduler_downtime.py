@@ -6,11 +6,18 @@ from telegram.ext import ApplicationBuilder
 from bot import setup
 from bot.constants import (CHAT_ID, DATE_FORMAT, HEADERS, NEWSLETTER,
                            TIME_FORMAT, URL)
+from bot.exceptions import ErrorRequest, ErrorSendMessage, ErrorStartSchedule
 from bot.utils import Downtime
 
 
 async def get_downtime(app: ApplicationBuilder) -> None:
-    downtime: dict = requests.get(URL, headers=HEADERS).json()  # Api отдает массив объектов, надо будет переписать на случай, если объектов > 1
+    try:
+        downtime: dict = requests.get(URL, headers=HEADERS).json()  # Api отдает массив объектов, надо будет переписать на случай, если объектов > 1
+    except Exception as e:
+        raise ErrorRequest(
+            f"Возникла ошибка при отправке запроса планировщика: {e}"
+        )
+
     if downtime:
         # message = [Downtime.preparation(data=data) for data in downtime]
         message = Downtime.preparation(data=downtime[0])
@@ -24,13 +31,19 @@ async def scheduler_reminder(
 ) -> None:
     reminder_time: datetime = data.start - timedelta(hours=1, minutes=30)
 
-    setup.scheduler.add_job(
-        send_message,
-        "date",
-        run_date=reminder_time,
-        id=f"reminder_{reminder_time}",
-        kwargs={"data": data, "app": app, "reminder_time": reminder_time}
-    )
+    try:
+        setup.scheduler.add_job(
+            send_message,
+            "date",
+            run_date=reminder_time,
+            id=f"reminder_{reminder_time}",
+            kwargs={"data": data, "app": app, "reminder_time": reminder_time}
+        )
+    except Exception as e:
+        ErrorStartSchedule(
+            f"Возникла ошибка при запуске "
+            f"планировщика второго напоминания: {str(e)}"
+        )
 
 
 async def send_message(
@@ -39,12 +52,12 @@ async def send_message(
         reminder_time: datetime | None = None
 ) -> None:
     text: str = (
-        f"<b>{data.start.date().strftime(DATE_FORMAT)}</b>\n"
-        f"С <b>{data.start.time().strftime(TIME_FORMAT)}</b> "
-        f"По <b>{data.end.time().strftime(TIME_FORMAT)}</b>\n"
+        f"<b>{data.start_downtime.date().strftime(DATE_FORMAT)}</b>\n"
+        f"С <b>{data.start_downtime.time().strftime(TIME_FORMAT)}</b> "
+        f"По <b>{data.end_downtime.time().strftime(TIME_FORMAT)}</b>\n"
         f"Cервис: <b>{data.service}</b>\n"
         f"Будет произведено: <b>{data.description}</b>\n"
-        f"Даунтайм согласован в рамках задачи: {data.link}\n"
+        f"Даунтайм согласован в рамках задачи: {data.link_downtime}\n"
         f"Ответственный со стороны ГСМАиЦП:\n"
         f"<b>{data.last_name} {data.first_name}</b>"
     )
@@ -64,4 +77,4 @@ async def send_message(
             parse_mode="HTML"
         )
     except Exception as e:
-        print(f"Возникла ошибка {e}")
+        raise ErrorSendMessage(f"Возникла ошибка {e}")

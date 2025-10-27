@@ -1,5 +1,6 @@
+from telegram import Update
 from telegram.ext import (Application, CallbackQueryHandler, CommandHandler,
-                          ConversationHandler, MessageHandler,
+                          ContextTypes, ConversationHandler, MessageHandler,
                           filters)
 
 from bot.bot_handlers.base import (cancel, description_for_create_donwtime,
@@ -11,12 +12,20 @@ from bot.bot_handlers.create_downtime import (calendar_for_added_store,
                                               link_create_downtime,
                                               minute_create,
                                               service_for_create_downtime)
-from bot.constants import (CALENDAR, CHECK_DATE, DESCRIPTION, HOUR,
-                           LINK, MINUTE, SERVICE)
+from bot.constants import (CALENDAR, CHECK_DATE, DESCRIPTION, HOUR, LINK,
+                           MINUTE, SERVICE)
 
 
 async def start_handler(app: Application):
     app.add_handler(CommandHandler("start", start))
+
+
+async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    error = context.error
+
+    await update.effective_chat.send_message(
+        f"Возникла ошибка в работе бота: {error}"
+    )
 
 
 async def handlers_create_downtime(app: Application) -> None:

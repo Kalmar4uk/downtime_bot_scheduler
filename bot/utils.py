@@ -12,18 +12,18 @@ class Downtime:
     def __init__(
             self,
             service: str | None = None,
-            link: str | None = None,
+            link_task: str | None = None,
             description: str | None = None,
-            start: datetime | None = None,
-            end: datetime | None = None,
+            start_downtime: datetime | None = None,
+            end_downtime: datetime | None = None,
             first_name: str | None = None,
             last_name: str | None = None
     ):
         self.service = service
-        self.link = link
+        self.link_task = link_task
         self.description = description
-        self.start = start
-        self.end = end
+        self.start_downtime = start_downtime
+        self.end_downtime = end_downtime
         self.first_name = first_name
         self.last_name = last_name
 
@@ -31,21 +31,21 @@ class Downtime:
     def preparation(cls, data: dict):
         employee: dict = data.get("gsma_employee")
         try:
-            start: datetime = datetime.fromisoformat(
+            start_downtime: datetime = datetime.fromisoformat(
                 data.get("start_downtime")
             )
-            end: datetime = datetime.fromisoformat(
+            end_downtime: datetime = datetime.fromisoformat(
                 data.get("end_downtime")
             )
         except Exception:
-            start = None
-            end = None
+            start_downtime = None
+            end_downtime = None
         return cls(
             service=data.get("service"),
-            link=data.get("link_task"),
+            link_task=data.get("link_task"),
             description=data.get("description"),
-            start=start,
-            end=end,
+            start_downtime=start_downtime,
+            end_downtime=end_downtime,
             first_name=employee.get("first_name"),
             last_name=employee.get("last_name"),
         )
