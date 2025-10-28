@@ -23,9 +23,10 @@ async def start_handler(app: Application):
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     error = context.error
 
-    await update.effective_chat.send_message(
-        f"Возникла ошибка в работе бота: {error}"
-    )
+    if update:
+        await update.effective_chat.send_message(
+            f"Возникла ошибка в работе бота: {error}"
+        )
 
 
 async def handlers_create_downtime(app: Application) -> None:

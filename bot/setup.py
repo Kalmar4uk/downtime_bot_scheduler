@@ -38,7 +38,7 @@ async def setup_scheduler() -> None:
 async def start() -> None:
     """Главная функция запусков"""
     await app.bot.set_my_commands(MY_COMMANDS)
-    await app.add_error_handler(error_handler)
+    app.add_error_handler(error_handler)
     await setup_scheduler()
     await start_handler(app=app)
     await handlers_create_downtime(app=app)

@@ -4,8 +4,6 @@ from datetime import datetime
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram_bot_calendar import DetailedTelegramCalendar
 
-from bot.constants import DATE_FORMAT, TIME_FORMAT
-
 
 class Downtime:
 
