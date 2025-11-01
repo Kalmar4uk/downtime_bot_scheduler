@@ -25,7 +25,7 @@ async def setup_scheduler() -> None:
     try:
         scheduler.add_job(
             get_downtime,
-            CronTrigger(hour=14),
+            CronTrigger(hour=11),
             id="get_downtime",
             timezone="Europe/Moscow",
             kwargs={"app": app}
