@@ -7,14 +7,16 @@ from telegram.ext import CallbackContext, ContextTypes, ConversationHandler
 from telegram_bot_calendar import DetailedTelegramCalendar
 
 from bot.api.requests_to_backend import create_post_request
-from bot.constants import (CALENDAR, CHECK_DATE, DESCRIPTION, HOUR, LINK,
-                           MINUTE, PATTERN_LINK, SERVICE)
+from bot.constants import PATTERN_LINK
 from bot.exceptions import (ErrorRequestDowntime, ErrorSendMessage,
                             ErrorTransformDatetime)
+from bot.decorators import require_auth, check_type_chat
 from bot.utils import (Downtime, generate_calendar, generate_hour,
                        generate_minute)
 
 
+@check_type_chat
+@require_auth
 async def service_for_create_downtime(
         update: Update,
         context: ContextTypes.DEFAULT_TYPE
@@ -27,7 +29,7 @@ async def service_for_create_downtime(
     except Exception as e:
         raise ErrorSendMessage(f"Возникла ошибка при отправке сообщения: {e}")
 
-    return SERVICE
+    return "SERVICE"
 
 
 async def calendar_for_create_downtime(
@@ -52,7 +54,7 @@ async def calendar_for_create_downtime(
             f"Возникла ошибка при отправке сообщения в чат: {e}"
         )
 
-    return CALENDAR
+    return "CALENDAR"
 
 
 async def calendar_create(
@@ -102,7 +104,7 @@ async def calendar_create(
                 f"Возникла ошибка при отправке сообщения в чат: {e}"
             )
 
-        return HOUR
+        return "HOUR"
 
 
 async def hour_create(update: Update, context: CallbackContext) -> int:
@@ -123,7 +125,7 @@ async def hour_create(update: Update, context: CallbackContext) -> int:
             f"Возникла ошибка при отправке сообщения в чат: {e}"
         )
 
-    return MINUTE
+    return "MINUTE"
 
 
 async def minute_create(update: Update, context: CallbackContext) -> int:
@@ -171,7 +173,7 @@ async def minute_create(update: Update, context: CallbackContext) -> int:
                 f"Возникла ошибка при отправке сообщения в чат: {e}"
             )
 
-        return CHECK_DATE
+        return "CHECK_DATE"
 
     try:
         await update.callback_query.message.reply_text(
@@ -182,7 +184,7 @@ async def minute_create(update: Update, context: CallbackContext) -> int:
             f"Возникла ошибка при отправке сообщения в чат: {e}"
         )
 
-    return LINK
+    return "LINK"
 
 
 async def check_date(update: Update, context: CallbackContext) -> int:
@@ -204,7 +206,7 @@ async def check_date(update: Update, context: CallbackContext) -> int:
                 f"Возникла ошибка при отправке сообщения в чат: {e}"
             )
 
-        return HOUR
+        return "HOUR"
 
     else:
         reply_markup = await generate_calendar()
@@ -219,7 +221,7 @@ async def check_date(update: Update, context: CallbackContext) -> int:
                 f"Возникла ошибка при отправке сообщения в чат: {e}"
             )
 
-        return CALENDAR
+        return "CALENDAR"
 
 
 async def link_create_downtime(
@@ -237,7 +239,7 @@ async def link_create_downtime(
             raise ErrorSendMessage(
                 f"Возникла ошибка при отправке сообщения в чат: {e}"
             )
-        return LINK
+        return "LINK"
     downtime: Downtime = context.user_data.get("downtime")
     downtime.link_task = link
 
@@ -248,7 +250,7 @@ async def link_create_downtime(
             f"Возникла ошибка при отправке сообщения в чат: {e}"
         )
 
-    return DESCRIPTION
+    return "DESCRIPTION"
 
 
 async def desctiption_create_downtime(

@@ -2,6 +2,7 @@ from telegram import ReplyKeyboardRemove, Update
 from telegram.ext import ContextTypes, ConversationHandler
 
 from bot import setup
+from bot.decorators import check_type_chat
 from bot.api.requests_to_backend import authorized_user
 from bot.bot_handlers import handlers
 from bot.constants import LOGIN, PASSWORD
@@ -9,6 +10,7 @@ from bot.exceptions import ErrorRequestDowntime, ErrorSendMessage
 from bot.utils import User
 
 
+@check_type_chat
 async def login(
         update: Update,
         context: ContextTypes.DEFAULT_TYPE
@@ -66,18 +68,11 @@ async def check_personal_data(
         )
         return await login(update=update, context=context)
 
-    output_success = (
-        "Можешь воспользоваться кнопками в меню"
-    )
+    context.user_data["authorized"] = True
 
     try:
-        await update.message.reply_text(text="Ништяк")
-        await update.message.reply_text(
-            text=output_success
-        )
+        await update.message.reply_text(text="Суккесс")
     except Exception as e:
         raise ErrorSendMessage(f"Возникла ошибка при отправке сообщения: {e}")
 
-    context.user_data.clear()
-
-    return await handlers.handlers_create_downtime(app=setup.app)
+    return ConversationHandler.END

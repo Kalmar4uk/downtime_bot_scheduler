@@ -6,7 +6,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from telegram.ext import ApplicationBuilder
 
-from bot.bot_handlers.handlers import error_handler, start_handler
+from bot.bot_handlers.handlers import error_handler, start_handler, handlers_create_downtime, handlers_authorized
 from bot.constants import TOKEN
 from bot.exceptions import ErrorStartSchedule
 from bot.scheduler.scheduler_downtime import get_downtime
@@ -39,6 +39,8 @@ async def start() -> None:
     app.add_error_handler(error_handler)
     await setup_scheduler()
     await start_handler(app=app)
+    await handlers_authorized(app=app)
+    await handlers_create_downtime(app=app)
 
     try:
         await app.run_polling()

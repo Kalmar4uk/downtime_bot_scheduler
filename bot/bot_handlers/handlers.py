@@ -15,8 +15,7 @@ from bot.bot_handlers.create_downtime import (calendar_create,
                                               link_create_downtime,
                                               minute_create,
                                               service_for_create_downtime)
-from bot.constants import (CALENDAR, CHECK_DATE, DESCRIPTION, HOUR, LINK,
-                           LOGIN, MINUTE, MY_COMMANDS, PASSWORD, SERVICE)
+from bot.constants import LOGIN, MY_COMMANDS, PASSWORD
 
 
 async def start_handler(app: Application):
@@ -39,31 +38,31 @@ async def handlers_create_downtime(app: Application) -> None:
             CommandHandler("add_downtime", service_for_create_downtime)
         ],
         states={
-            SERVICE: [
+            "SERVICE": [
                 MessageHandler(
                     filters.TEXT & ~filters.COMMAND,
                     calendar_for_create_downtime
                 )
             ],
-            CALENDAR: [
+            "CALENDAR": [
                 CallbackQueryHandler(calendar_create)
             ],
-            HOUR: [
+            "HOUR": [
                 CallbackQueryHandler(hour_create)
             ],
-            MINUTE: [
+            "MINUTE": [
                 CallbackQueryHandler(minute_create)
             ],
-            CHECK_DATE: [
+            "CHECK_DATE": [
                 CallbackQueryHandler(check_date)
             ],
-            LINK: [
+            "LINK": [
                 MessageHandler(
                     filters.TEXT & ~filters.COMMAND,
                     link_create_downtime
                 )
             ],
-            DESCRIPTION: [
+            "DESCRIPTION": [
                 MessageHandler(
                     filters.TEXT & ~filters.COMMAND,
                     desctiption_create_downtime

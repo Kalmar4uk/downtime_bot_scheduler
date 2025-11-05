@@ -32,6 +32,8 @@ SERVICE, CALENDAR, HOUR, MINUTE, CHECK_DATE, LINK, DESCRIPTION = range(7)
 LOGIN, PASSWORD = range(2)
 PATTERN_LINK = r"^https://tracker\.yandex\.ru/DOWNTIME-\d{1,}"
 MY_COMMANDS = (
+    BotCommand("start", "Начало работы"),
+    BotCommand("login", "Авторизоваться"),
     BotCommand("add_downtime", "Добавить плановые работы"),
     BotCommand("cancel", "Остановить запись плановых работ")
 )
