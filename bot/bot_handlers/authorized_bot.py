@@ -78,7 +78,6 @@ async def check_personal_data(
     except Exception as e:
         raise ErrorSendMessage(f"Возникла ошибка при отправке сообщения: {e}")
 
-    await handlers.handlers_create_downtime(app=setup.app)
-
     context.user_data.clear()
-    return ConversationHandler.END
+
+    return await handlers.handlers_create_downtime(app=setup.app)
