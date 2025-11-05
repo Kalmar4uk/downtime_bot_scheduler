@@ -20,3 +20,9 @@ class ErrorTransformDatetime(Exception):
 
 class ErrorRequest(Exception):
     """Исключение при отправке запроса"""
+    pass
+
+
+class PermissionDenied(Exception):
+    """Отсутствие прав"""
+    pass

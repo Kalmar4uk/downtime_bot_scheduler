@@ -5,6 +5,24 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram_bot_calendar import DetailedTelegramCalendar
 
 
+class User:
+
+    def __init__(
+            self, username: str | None = None,
+            password: str | None = None
+    ):
+        self.username = username
+        self.password = password
+
+    def save_login(
+            self,
+            data: str,
+    ) -> None:
+        if not isinstance(data, str):
+            raise Exception
+        self.username = data.lower()
+
+
 class Downtime:
 
     def __init__(

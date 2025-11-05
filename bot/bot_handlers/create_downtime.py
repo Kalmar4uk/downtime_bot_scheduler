@@ -6,9 +6,9 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackContext, ContextTypes, ConversationHandler
 from telegram_bot_calendar import DetailedTelegramCalendar
 
-from bot.bot_handlers.request_create_downtime import create_post_request
+from bot.api.requests_to_backend import create_post_request
 from bot.constants import (CALENDAR, CHECK_DATE, DESCRIPTION, HOUR, LINK,
-                           MINUTE, PATTERN_LINK)
+                           MINUTE, PATTERN_LINK, SERVICE)
 from bot.exceptions import (ErrorRequestDowntime, ErrorSendMessage,
                             ErrorTransformDatetime)
 from bot.utils import (Downtime, generate_calendar, generate_hour,
@@ -16,6 +16,21 @@ from bot.utils import (Downtime, generate_calendar, generate_hour,
 
 
 async def service_for_create_downtime(
+        update: Update,
+        context: ContextTypes.DEFAULT_TYPE
+) -> int:
+    context.user_data["downtime"] = Downtime()
+    try:
+        await update.message.reply_text(
+            "Введи название сервиса или отправь /cancel для остановки"
+        )
+    except Exception as e:
+        raise ErrorSendMessage(f"Возникла ошибка при отправке сообщения: {e}")
+
+    return SERVICE
+
+
+async def calendar_for_create_downtime(
         update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> int:
     """Получение название сервиса"""
@@ -23,7 +38,7 @@ async def service_for_create_downtime(
     downtime.save_service_and_description(
         data=update.message.text.strip(),
         is_service=True
-        )
+    )
 
     reply_markup = await generate_calendar()
 
@@ -40,7 +55,7 @@ async def service_for_create_downtime(
     return CALENDAR
 
 
-async def calendar_for_added_store(
+async def calendar_create(
         update: Update,
         context: CallbackContext
 ) -> int:
@@ -258,7 +273,7 @@ async def desctiption_create_downtime(
     try:
         new_downtime = await create_post_request(downtime=downtime)
     except ErrorRequestDowntime as e:
-        await update.message.reply_text(
+        return await update.message.reply_text(
             str(e)
         )
     try:

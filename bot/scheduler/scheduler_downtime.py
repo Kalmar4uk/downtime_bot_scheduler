@@ -4,15 +4,17 @@ import requests
 from telegram.ext import ApplicationBuilder
 
 from bot import setup
-from bot.constants import (CHAT_ID, DATE_FORMAT, HEADERS, NEWSLETTER,
-                           TIME_FORMAT, URL, MY_CHAT)
+from bot.constants import (CHAT_ID, DATE_FORMAT, HEADERS, MY_CHAT, NEWSLETTER,
+                           TIME_FORMAT, URL)
 from bot.exceptions import ErrorSendMessage, ErrorStartSchedule
 from bot.utils import Downtime
 
 
 async def get_downtime(app: ApplicationBuilder) -> None:
     try:
-        downtime: dict = requests.get(URL, headers=HEADERS).json()  # Api отдает массив объектов, надо будет переписать на случай, если объектов > 1
+        # Api отдает массив объектов,
+        # надо будет переписать на случай, если объектов > 1
+        downtime: dict = requests.get(URL, headers=HEADERS).json()
     except Exception as e:
         await send_error(
             app=app,
@@ -24,13 +26,16 @@ async def get_downtime(app: ApplicationBuilder) -> None:
     if downtime:
         # message = [Downtime.preparation(data=data) for data in downtime]
         message = Downtime.preparation(data=downtime[0])
-        try:
-            await send_message(data=message, app=app)
-            await scheduler_reminder(app=app, data=message)
-        except ErrorStartSchedule as e:
-            await send_error(app=app, error=str(e))
-        except ErrorSendMessage as e:
-            await send_error(app=app, error=str(e))
+        if (
+            message.start_downtime.date() == (
+                datetime.now().date() + timedelta(days=1)
+            )
+        ):
+            try:
+                await send_message(data=message, app=app)
+                await scheduler_reminder(app=app, data=message)
+            except Exception as e:
+                await send_error(app=app, error=str(e))
 
 
 async def send_error(app: ApplicationBuilder, error: str):

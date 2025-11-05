@@ -3,9 +3,12 @@ from telegram.ext import (Application, CallbackQueryHandler, CommandHandler,
                           ContextTypes, ConversationHandler, MessageHandler,
                           filters)
 
-from bot.bot_handlers.base import (cancel, description_for_create_donwtime,
-                                   start)
-from bot.bot_handlers.create_downtime import (calendar_for_added_store,
+from bot import setup
+from bot.bot_handlers.authorized_bot import (check_personal_data, login,
+                                             password)
+from bot.bot_handlers.base import cancel, start
+from bot.bot_handlers.create_downtime import (calendar_create,
+                                              calendar_for_create_downtime,
                                               check_date,
                                               desctiption_create_downtime,
                                               hour_create,
@@ -13,7 +16,7 @@ from bot.bot_handlers.create_downtime import (calendar_for_added_store,
                                               minute_create,
                                               service_for_create_downtime)
 from bot.constants import (CALENDAR, CHECK_DATE, DESCRIPTION, HOUR, LINK,
-                           MINUTE, SERVICE)
+                           LOGIN, MINUTE, MY_COMMANDS, PASSWORD, SERVICE)
 
 
 async def start_handler(app: Application):
@@ -33,17 +36,17 @@ async def handlers_create_downtime(app: Application) -> None:
 
     create_downtime = ConversationHandler(
         entry_points=[
-            CommandHandler("add_downtime", description_for_create_donwtime)
+            CommandHandler("add_downtime", service_for_create_downtime)
         ],
         states={
             SERVICE: [
                 MessageHandler(
                     filters.TEXT & ~filters.COMMAND,
-                    service_for_create_downtime
+                    calendar_for_create_downtime
                 )
             ],
             CALENDAR: [
-                CallbackQueryHandler(calendar_for_added_store)
+                CallbackQueryHandler(calendar_create)
             ],
             HOUR: [
                 CallbackQueryHandler(hour_create)
@@ -71,3 +74,30 @@ async def handlers_create_downtime(app: Application) -> None:
     )
 
     app.add_handler(create_downtime)
+    await setup.app.bot.set_my_commands(MY_COMMANDS)
+
+
+async def handlers_authorized(app: Application) -> None:
+
+    authorized = ConversationHandler(
+        entry_points=[
+            CommandHandler("login", login)
+        ],
+        states={
+            LOGIN: [
+                MessageHandler(
+                    filters.TEXT & ~filters.COMMAND,
+                    password
+                )
+            ],
+            PASSWORD: [
+                MessageHandler(
+                    filters.TEXT & ~filters.COMMAND,
+                    check_personal_data
+                )
+            ]
+        },
+        fallbacks=[CommandHandler("cancel", cancel)]
+    )
+
+    app.add_handler(authorized)
