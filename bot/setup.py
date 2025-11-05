@@ -6,9 +6,11 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from telegram.ext import ApplicationBuilder
 
-from bot.bot_handlers.handlers import error_handler, start_handler, handlers_create_downtime, handlers_authorized
+from bot.bot_handlers.handlers import (error_handler, handlers_authorized,
+                                       handlers_create_downtime, start_handler)
 from bot.constants import TOKEN
 from bot.exceptions import ErrorStartSchedule
+from bot.logs_settings import logger
 from bot.scheduler.scheduler_downtime import get_downtime
 
 nest_asyncio.apply()
@@ -22,6 +24,7 @@ sentry_sdk.init(os.getenv("DSN_BOT"))
 async def setup_scheduler() -> None:
     """Запуск планировщика"""
     try:
+        logger.info("Запустили планировщик")
         scheduler.add_job(
             get_downtime,
             CronTrigger(hour=11),
@@ -36,6 +39,7 @@ async def setup_scheduler() -> None:
 
 async def start() -> None:
     """Главная функция запусков"""
+    logger.info("Запустили хендлеры бота")
     app.add_error_handler(error_handler)
     await setup_scheduler()
     await start_handler(app=app)
@@ -45,6 +49,6 @@ async def start() -> None:
     try:
         await app.run_polling()
     except (KeyboardInterrupt, RuntimeError):
-        print("Остановились")
+        logger.info("Работа бота остановлена")
     except Exception as e:
-        print(f"Возникла ошибка: {e}")
+        logger.error(f"Возникла ошибка при запуске хендлеров бота: {e}")

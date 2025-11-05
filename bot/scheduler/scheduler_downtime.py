@@ -7,6 +7,7 @@ from bot import setup
 from bot.constants import (CHAT_ID, DATE_FORMAT, HEADERS, MY_CHAT, NEWSLETTER,
                            TIME_FORMAT, URL)
 from bot.exceptions import ErrorSendMessage, ErrorStartSchedule
+from bot.logs_settings import logger
 from bot.utils import Downtime
 
 
@@ -14,8 +15,10 @@ async def get_downtime(app: ApplicationBuilder) -> None:
     try:
         # Api отдает массив объектов,
         # надо будет переписать на случай, если объектов > 1
+        logger.info("Отправили запрос на получение плановых работ")
         downtime: dict = requests.get(URL, headers=HEADERS).json()
     except Exception as e:
+        logger.error(f"Возникла ошибка при обработке запроса: {str(e)}")
         await send_error(
             app=app,
             error=(
@@ -25,20 +28,30 @@ async def get_downtime(app: ApplicationBuilder) -> None:
 
     if downtime:
         # message = [Downtime.preparation(data=data) for data in downtime]
+        logger.info("Получили данные о плановых работах")
         message = Downtime.preparation(data=downtime[0])
+        logger.info("Проверили время старта")
         if (
             message.start_downtime.date() == (
                 datetime.now().date() + timedelta(days=1)
             )
         ):
             try:
+                logger.info("Отправили сообщение в чат")
                 await send_message(data=message, app=app)
+
+                logger.info("Отправили данные для второго уведомления")
                 await scheduler_reminder(app=app, data=message)
             except Exception as e:
+                logger.error(
+                    f"Возникла ошибка при отправке сообщения "
+                    f"или планирования второго уведомления: {str(e)}"
+                )
                 await send_error(app=app, error=str(e))
 
 
 async def send_error(app: ApplicationBuilder, error: str):
+    logger.info("Отправили сообщение об ошибке в чат администратору")
     await app.bot.send_message(
             chat_id=MY_CHAT,
             text=error,
@@ -49,11 +62,13 @@ async def scheduler_reminder(
         app: ApplicationBuilder,
         data: Downtime
 ) -> None:
+    logger.info("Рассчитали время повторого уведомления")
     reminder_time: datetime = (
         data.start_downtime - timedelta(hours=1, minutes=30)
     )
 
     try:
+        logger.info("Запустили планировщик повторного уведомления")
         setup.scheduler.add_job(
             send_message,
             "date",
@@ -62,6 +77,10 @@ async def scheduler_reminder(
             kwargs={"data": data, "app": app, "reminder_time": reminder_time}
         )
     except Exception as e:
+        logger.error(
+            f"Возникла ошибка при планировании "
+            f"повторного уведомления: {str(e)}"
+        )
         raise ErrorStartSchedule(
             f"Возникла ошибка при запуске "
             f"планировщика второго напоминания: {str(e)}"
@@ -74,6 +93,7 @@ async def send_message(
         reminder_time: datetime | None = None
 ) -> None:
     try:
+        logger.info("Подготовили текст сообщения для уведомления")
         text: str = (
             f"<b>{data.start_downtime.date().strftime(DATE_FORMAT)}</b>\n"
             f"С <b>{data.start_downtime.time().strftime(TIME_FORMAT)}</b> "
@@ -85,6 +105,7 @@ async def send_message(
             f"<b>{data.last_name} {data.first_name}</b>"
         )
     except Exception as e:
+        logger.error(f"Возникла ошибка при отправке сообщения планировщика: {str(e)}")
         raise ErrorSendMessage(
             f"Возникла ошибка при отправке сообщения планировщика: {str(e)}"
         )
@@ -98,12 +119,16 @@ async def send_message(
         )
 
     try:
+        logger.info("Отправили напоминание в чат")
         await app.bot.send_message(
             chat_id=CHAT_ID,
             text=news,
             parse_mode="HTML"
         )
     except Exception as e:
+        logger.error(
+            f"Возникла ошибка при отправке сообщения планировщика: {str(e)}"
+        )
         raise ErrorSendMessage(
             f"Возникла ошибка при отправке сообщения планировщика: {str(e)}"
         )
