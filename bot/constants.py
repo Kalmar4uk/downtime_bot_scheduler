@@ -9,7 +9,7 @@ TOKEN = os.getenv("TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 MY_CHAT = os.getenv("MY_CHAT")
 HEADERS = {"token": os.getenv("TOKEN_FOR_API")}
-URL = "https://job-lk.hopto.org/api/downtime/"
+URL = "https://job-lk.hopto.org/api/downtime/?start_from={}&start_to={}"
 URL_LOGIN = "https://job-lk.hopto.org/api/v2/token/login/"
 
 DATE_FORMAT = "%d.%m.%Y"

@@ -12,11 +12,14 @@ from bot.utils import Downtime
 
 
 async def get_downtime(app: ApplicationBuilder) -> None:
+    date_downtime: datetime = datetime.now().date() + timedelta(days=1)
+
     try:
-        # Api отдает массив объектов,
-        # надо будет переписать на случай, если объектов > 1
         logger.info("Отправили запрос на получение плановых работ")
-        downtime: dict = requests.get(URL, headers=HEADERS).json()
+        downtime: dict = requests.get(
+            URL.format(date_downtime, date_downtime),
+            headers=HEADERS
+        ).json()
     except Exception as e:
         logger.error(f"Возникла ошибка при обработке запроса: {str(e)}")
         await send_error(
@@ -27,7 +30,6 @@ async def get_downtime(app: ApplicationBuilder) -> None:
         )
 
     if downtime:
-        # message = [Downtime.preparation(data=data) for data in downtime]
         logger.info("Получили данные о плановых работах")
         message = Downtime.preparation(data=downtime[0])
         logger.info("Проверили время старта")
