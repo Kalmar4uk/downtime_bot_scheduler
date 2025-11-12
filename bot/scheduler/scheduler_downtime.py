@@ -107,7 +107,9 @@ async def send_message(
             f"<b>{data.last_name} {data.first_name}</b>"
         )
     except Exception as e:
-        logger.error(f"Возникла ошибка при отправке сообщения планировщика: {str(e)}")
+        logger.error(
+            f"Возникла ошибка при отправке сообщения планировщика: {str(e)}"
+        )
         raise ErrorSendMessage(
             f"Возникла ошибка при отправке сообщения планировщика: {str(e)}"
         )
